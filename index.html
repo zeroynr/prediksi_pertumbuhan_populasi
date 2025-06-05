@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aplikasi Pertumbuhan Populasi</title>
+    <link rel="icon" type="image/png" href="bumi.png" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="main-card">
+        <div class="header">
+          <!-- TAMBAHKAN: Global Population Ticker di atas judul -->
+          <div class="population-ticker">
+            <div class="ticker-label">🌍 Live Population</div>
+            <div class="ticker-container">
+              <div class="ticker-content" id="populationTicker">
+                <!-- Data akan diisi oleh JavaScript -->
+              </div>
+            </div>
+          </div>
+          <h1>Aplikasi Pertumbuhan Populasi</h1>
+          <p>Prediksi menggunakan Metode Adams-Moulton & Adams-Bashforth</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+          <button class="nav-tab active" data-tab="input">
+            <span class="icon">+</span>
+            Input Data
+          </button>
+          <button class="nav-tab" data-tab="prediction">
+            <span class="icon">▶</span>
+            Prediksi
+          </button>
+          <button class="nav-tab" data-tab="graph">
+            <span class="icon">📈</span>
+            Grafik
+          </button>
+          <button class="nav-tab" data-tab="formulas">
+            <span class="icon">📐</span>
+            Rumus
+          </button>
+        </div>
+
+        <!-- Input Data Tab -->
+        <div id="input-tab" class="tab-content active">
+          <div class="section">
+            <h3>Tambah Data Populasi</h3>
+            <div class="input-group">
+              <input type="number" id="newYear" placeholder="Tahun" />
+              <input type="number" id="newPopulation" placeholder="Populasi" />
+              <button id="addDataBtn" class="btn btn-green">
+                <span class="icon">+</span>
+                Tambah
+              </button>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>Parameter Model</h3>
+            <div class="parameter-grid">
+              <div class="parameter">
+                <label
+                  >Growth Rate (r):
+                  <span id="growthRateValue">0.05</span></label
+                >
+                <input
+                  type="range"
+                  id="growthRate"
+                  min="0.01"
+                  max="0.2"
+                  step="0.01"
+                  value="0.05"
+                />
+              </div>
+              <div class="parameter">
+                <label
+                  >Carrying Capacity:
+                  <span id="carryingCapacityValue">10,000,000</span></label
+                >
+                <input
+                  type="range"
+                  id="carryingCapacity"
+                  min="1000000"
+                  max="50000000"
+                  step="1000000"
+                  value="10000000"
+                />
+              </div>
+              <div class="parameter">
+                <label
+                  >Tahun Prediksi:
+                  <span id="predictionYearsValue">5</span></label
+                >
+                <input
+                  type="range"
+                  id="predictionYears"
+                  min="1"
+                  max="20"
+                  value="5"
+                />
+              </div>
+            </div>
+
+            <div class="method-group">
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="method"
+                  value="adams-moulton"
+                  checked
+                />
+                Adams-Moulton (Implicit)
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="method" value="adams-bashforth" />
+                Adams-Bashforth (Explicit)
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="method" value="predictor-corrector" />
+                Predictor-Corrector (Adams-Bashforth + Moulton)
+              </label>
+            </div>
+
+            <div class="button-group">
+              <button id="calculateBtn" class="btn btn-blue">
+                <span class="icon">▶</span>
+                Hitung Prediksi
+              </button>
+              <button id="resetBtn" class="btn btn-red">
+                <span class="icon">🔄</span>
+                Reset Semua
+              </button>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>Data Historical</h3>
+            <div class="table-container">
+              <table id="dataTable">
+                <thead>
+                  <tr>
+                    <th>Tahun</th>
+                    <th>Populasi</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prediction Results Tab -->
+        <div id="prediction-tab" class="tab-content">
+          <div class="section">
+            <h3>Hasil Prediksi</h3>
+            <div id="predictionResults">
+              <p class="no-results">
+                Belum ada hasil prediksi. Silakan atur parameter dan klik
+                "Hitung Prediksi".
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Graph Tab -->
+        <div id="graph-tab" class="tab-content">
+          <div class="section">
+            <h3>Grafik Pertumbuhan Populasi</h3>
+            <div class="chart-container">
+              <canvas id="populationChart"></canvas>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-card stat-blue">
+                <div class="stat-title">Data Historical</div>
+                <div class="stat-value" id="historicalCount">4 data point</div>
+              </div>
+              <div class="stat-card stat-green">
+                <div class="stat-title">Prediksi</div>
+                <div class="stat-value" id="predictionCount">0 tahun</div>
+              </div>
+              <div class="stat-card stat-purple">
+                <div class="stat-title">Metode</div>
+                <div class="stat-value" id="methodName">Adams Moulton</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="formulas-tab" class="tab-content">
+          <div class="section">
+            <h3>Metode Numerik yang Digunakan</h3>
+            <p class="formula-description">
+              Aplikasi ini menggunakan dua metode numerik untuk prediksi
+              pertumbuhan populasi:
+            </p>
+
+            <div class="formula-container">
+              <div class="formula-card">
+                <h4>Adams-Bashforth Method (Eksplisit)</h4>
+                <div class="formula-image">
+                  <div class="formula-text">
+                    y<sub>n+1</sub> = y<sub>n</sub> + <sup>h</sup>/<sub>C</sub>
+                    (B<sub>0</sub>f<sub>n</sub> + B<sub>1</sub>f<sub>n-1</sub> +
+                    B<sub>2</sub>f<sub>n-2</sub> + B<sub>3</sub>f<sub>n-3</sub>)
+                  </div>
+                </div>
+                <p class="formula-explanation">
+                  Metode eksplisit yang menggunakan nilai-nilai sebelumnya untuk
+                  memprediksi nilai berikutnya. Digunakan sebagai langkah
+                  <strong>predictor</strong> dalam metode predictor-corrector.
+                </p>
+              </div>
+
+              <div class="formula-card">
+                <h4>Adams-Moulton Method (Implisit)</h4>
+                <div class="formula-image">
+                  <div class="formula-text">
+                    y<sub>n+1</sub> = y<sub>n</sub> + <sup>h</sup>/<sub>C</sub>
+                    (A<sub>0</sub>f<sub>n+1</sub> + A<sub>1</sub>f<sub>n</sub> +
+                    A<sub>2</sub>f<sub>n-1</sub> + A<sub>3</sub>f<sub>n-2</sub>)
+                  </div>
+                </div>
+                <p class="formula-explanation">
+                  Metode implisit yang menggunakan nilai yang akan dicari dalam
+                  perhitungan. Memberikan hasil yang lebih stabil dan akurat.
+                  Digunakan sebagai langkah <strong>corrector</strong>.
+                </p>
+              </div>
+            </div>
+
+            <div class="implementation-notes">
+              <h4>Implementasi dalam Aplikasi</h4>
+              <ul>
+                <li>
+                  <strong>Model Pertumbuhan:</strong> Menggunakan model logistik
+                  dengan rumus f(t,y) = r·y·(1-y/K)
+                </li>
+                <li>
+                  <strong>Step Size (h):</strong> 1 tahun untuk setiap iterasi
+                </li>
+                <li>
+                  <strong>Growth Rate (r):</strong> Parameter yang dapat
+                  disesuaikan (0.01 - 0.2)
+                </li>
+                <li>
+                  <strong>Carrying Capacity (K):</strong> Batas maksimum
+                  populasi yang dapat ditampung
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="app-footer">
+      <div class="footer-content">
+        <div class="footer-info">
+          <h4>Aplikasi Pertumbuhan Populasi</h4>
+          <p>Menggunakan Metode Adams-Moulton & Adams-Bashforth</p>
+        </div>
+        <div class="footer-copyright">
+          <p>&copy; 2025 Kelompok 6 - Metode Numerik</p>
+          <p class="footer-subtitle">Dikembangkan untuk keperluan akademik</p>
+        </div>
+      </div>
+    </footer>
+    <script src="script.js"></script>
+  </body>
+</html>
